@@ -1,50 +1,64 @@
-import PrimaryButton from '@/Components/PrimaryButton';
-import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
 export default function VerifyEmail({ status }) {
+
     const { post, processing } = useForm({});
 
     const submit = (e) => {
         e.preventDefault();
-
-        post(route('verification.send'));
+        post('/email/verification-notification');
     };
 
     return (
-        <GuestLayout>
-            <Head title="Email Verification" />
+        <>
+            <Head title="Verify Email - Inventory System" />
 
-            <div className="mb-4 text-sm text-gray-600">
-                Thanks for signing up! Before getting started, could you verify
-                your email address by clicking on the link we just emailed to
-                you? If you didn't receive the email, we will gladly send you
-                another.
+            <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+
+                <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8 text-center">
+
+                    <h1 className="text-2xl font-bold text-gray-800">
+                        Verify Your Email
+                    </h1>
+
+                    <p className="text-gray-600 mt-3 text-sm">
+                        Before accessing the Inventory System, please verify your email address.
+                        If you didn’t receive the email, we can send it again.
+                    </p>
+
+                    {/* STATUS */}
+                    {status === 'verification-link-sent' && (
+                        <div className="mt-4 text-green-600 text-sm">
+                            Verification link sent successfully.
+                        </div>
+                    )}
+
+                    {/* BUTTON */}
+                    <form onSubmit={submit} className="mt-6">
+
+                        <button
+                            disabled={processing}
+                            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+                        >
+                            Resend Verification Email
+                        </button>
+
+                    </form>
+
+                    {/* LOGOUT */}
+                    <div className="mt-4">
+                        <Link
+                            href="/logout"
+                            method="post"
+                            as="button"
+                            className="text-sm text-gray-600 hover:underline"
+                        >
+                            Logout
+                        </Link>
+                    </div>
+
+                </div>
             </div>
-
-            {status === 'verification-link-sent' && (
-                <div className="mb-4 text-sm font-medium text-green-600">
-                    A new verification link has been sent to the email address
-                    you provided during registration.
-                </div>
-            )}
-
-            <form onSubmit={submit}>
-                <div className="mt-4 flex items-center justify-between">
-                    <PrimaryButton disabled={processing}>
-                        Resend Verification Email
-                    </PrimaryButton>
-
-                    <Link
-                        href={route('logout')}
-                        method="post"
-                        as="button"
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    >
-                        Log Out
-                    </Link>
-                </div>
-            </form>
-        </GuestLayout>
+        </>
     );
 }

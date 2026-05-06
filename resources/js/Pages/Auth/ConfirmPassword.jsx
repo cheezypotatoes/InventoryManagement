@@ -1,11 +1,7 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, useForm } from '@inertiajs/react';
 
 export default function ConfirmPassword() {
+
     const { data, setData, post, processing, errors, reset } = useForm({
         password: '',
     });
@@ -19,37 +15,59 @@ export default function ConfirmPassword() {
     };
 
     return (
-        <GuestLayout>
-            <Head title="Confirm Password" />
+        <>
+            <Head title="Confirm Password - Inventory System" />
 
-            <div className="mb-4 text-sm text-gray-600">
-                This is a secure area of the application. Please confirm your
-                password before continuing.
+            <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+
+                <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
+
+                    {/* TITLE */}
+                    <h1 className="text-2xl font-bold text-center text-gray-800">
+                        Confirm Password
+                    </h1>
+
+                    <p className="text-center text-sm text-gray-500 mt-2">
+                        Inventory Management System Security Check
+                    </p>
+
+                    <p className="text-sm text-gray-600 mt-4 text-center">
+                        This is a secure area. Please confirm your password before continuing.
+                    </p>
+
+                    <form onSubmit={submit} className="mt-6">
+
+                        {/* PASSWORD */}
+                        <div>
+                            <label className="text-sm text-gray-600">
+                                Password
+                            </label>
+
+                            <input
+                                type="password"
+                                value={data.password}
+                                onChange={(e) => setData('password', e.target.value)}
+                                className="w-full mt-1 border rounded-lg p-2"
+                            />
+
+                            {errors.password && (
+                                <p className="text-red-500 text-sm mt-1">
+                                    {errors.password}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* BUTTON */}
+                        <button
+                            disabled={processing}
+                            className="w-full mt-5 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+                        >
+                            Confirm Password
+                        </button>
+
+                    </form>
+                </div>
             </div>
-
-            <form onSubmit={submit}>
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        isFocused={true}
-                        onChange={(e) => setData('password', e.target.value)}
-                    />
-
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div className="mt-4 flex items-center justify-end">
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Confirm
-                    </PrimaryButton>
-                </div>
-            </form>
-        </GuestLayout>
+        </>
     );
 }

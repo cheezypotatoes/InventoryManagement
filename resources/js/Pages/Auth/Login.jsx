@@ -1,100 +1,126 @@
-import Checkbox from '@/Components/Checkbox';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm, Link } from '@inertiajs/react';
+import { useEffect } from 'react';
 
-export default function Login({ status, canResetPassword }) {
+export default function Login({ status }) {
+
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
         remember: false,
     });
 
+    useEffect(() => {
+        return () => reset('password');
+    }, []);
+
     const submit = (e) => {
         e.preventDefault();
-
-        post(route('login'), {
-            onFinish: () => reset('password'),
-        });
+        post('/login');
     };
 
     return (
-        <GuestLayout>
-            <Head title="Log in" />
+        <>
+            <Head title="Inventory Login" />
 
-            {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
+            <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
 
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="email" value="Email" />
+                <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
 
-                    <TextInput
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
-                        className="mt-1 block w-full"
-                        autoComplete="username"
-                        isFocused={true}
-                        onChange={(e) => setData('email', e.target.value)}
-                    />
+                    {/* HEADER */}
+                    <div className="text-center mb-6">
+                        <h1 className="text-3xl font-bold text-gray-800">
+                            Inventory System
+                        </h1>
+                        <p className="text-gray-500 mt-2">
+                            Sign in to manage products, stock & sales
+                        </p>
+                    </div>
 
-                    <InputError message={errors.email} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        autoComplete="current-password"
-                        onChange={(e) => setData('password', e.target.value)}
-                    />
-
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div className="mt-4 block">
-                    <label className="flex items-center">
-                        <Checkbox
-                            name="remember"
-                            checked={data.remember}
-                            onChange={(e) =>
-                                setData('remember', e.target.checked)
-                            }
-                        />
-                        <span className="ms-2 text-sm text-gray-600">
-                            Remember me
-                        </span>
-                    </label>
-                </div>
-
-                <div className="mt-4 flex items-center justify-end">
-                    {canResetPassword && (
-                        <Link
-                            href={route('password.request')}
-                            className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                        >
-                            Forgot your password?
-                        </Link>
+                    {/* STATUS */}
+                    {status && (
+                        <div className="mb-4 text-sm text-green-600 text-center">
+                            {status}
+                        </div>
                     )}
 
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Log in
-                    </PrimaryButton>
+                    {/* FORM */}
+                    <form onSubmit={submit} className="space-y-4">
+
+                        {/* EMAIL */}
+                        <div>
+                            <label className="text-sm text-gray-600">Email</label>
+                            <input
+                                type="email"
+                                className="w-full border rounded-lg p-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                value={data.email}
+                                onChange={(e) => setData('email', e.target.value)}
+                                placeholder="admin@inventory.com"
+                            />
+                            {errors.email && (
+                                <p className="text-red-500 text-xs mt-1">
+                                    {errors.email}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* PASSWORD */}
+                        <div>
+                            <label className="text-sm text-gray-600">Password</label>
+                            <input
+                                type="password"
+                                className="w-full border rounded-lg p-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                value={data.password}
+                                onChange={(e) => setData('password', e.target.value)}
+                                placeholder="••••••••"
+                            />
+                            {errors.password && (
+                                <p className="text-red-500 text-xs mt-1">
+                                    {errors.password}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* REMEMBER + FORGOT */}
+                        <div className="flex justify-between items-center text-sm">
+
+                            <label className="flex items-center gap-2 text-gray-600">
+                                <input
+                                    type="checkbox"
+                                    checked={data.remember}
+                                    onChange={(e) =>
+                                        setData('remember', e.target.checked)
+                                    }
+                                />
+                                Remember me
+                            </label>
+
+                            <Link
+                                href="/forgot-password"
+                                className="text-blue-600 hover:underline"
+                            >
+                                Forgot?
+                            </Link>
+
+                        </div>
+
+                        {/* BUTTON */}
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+                        >
+                            {processing ? 'Logging in...' : 'Login'}
+                        </button>
+
+                    </form>
+
+                    {/* FOOTER */}
+                    <p className="text-center text-sm text-gray-500 mt-6">
+                        Inventory Management System © {new Date().getFullYear()}
+                    </p>
+
                 </div>
-            </form>
-        </GuestLayout>
+            </div>
+        </>
     );
 }
