@@ -81,8 +81,7 @@ export default function Login({ status }) {
                         </div>
 
                         {/* REMEMBER + FORGOT */}
-                        <div className="flex justify-between items-center text-sm">
-
+                        <div className="flex justify-start items-center text-sm">
                             <label className="flex items-center gap-2 text-gray-600">
                                 <input
                                     type="checkbox"
@@ -93,14 +92,6 @@ export default function Login({ status }) {
                                 />
                                 Remember me
                             </label>
-
-                            <Link
-                                href="/forgot-password"
-                                className="text-blue-600 hover:underline"
-                            >
-                                Forgot?
-                            </Link>
-
                         </div>
 
                         {/* BUTTON */}
