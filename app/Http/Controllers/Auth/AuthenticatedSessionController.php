@@ -71,7 +71,9 @@ class AuthenticatedSessionController extends Controller
 
     protected function redirectPath($user): string
     {
+
         return match ($user->role) {
+
             'admin' => route('admin.dashboard', absolute: false),
             'staff' => route('staff.dashboard', absolute: false),
             'viewer' => route('viewer.dashboard', absolute: false),
