@@ -18,7 +18,7 @@ class StaffMiddleware
             return redirect()->route('login');
         }
 
-        if (! in_array(Auth::user()->role, ['admin', 'staff'])) {
+        if (Auth::user()->role !== 'staff') {
             return redirect()->route('dashboard')->with('error', 'Unauthorized access to staff area.');
         }
 

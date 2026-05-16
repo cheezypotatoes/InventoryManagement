@@ -92,4 +92,9 @@ class Inventory extends Model
         $this->total_value = $this->calculateTotalValue();
         $this->save();
     }
+
+    public function changeRequests()
+    {
+        return $this->hasMany(\App\Models\InventoryChangeRequest::class);
+    }
 }

@@ -8,7 +8,7 @@ use App\Http\Controllers\Staff\TaskController as StaffTaskController;
 use App\Http\Controllers\Viewer\DashboardController as ViewerDashboardController;
 use App\Http\Controllers\Viewer\InventoryController as ViewerInventoryController;
 use App\Http\Controllers\Viewer\ReportController as ViewerReportController;
-use Illuminate\Foundation\Application;
+use App\Http\Controllers\Staff\InventoryChangeRequestController as StaffInventoryChangeRequestController;use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -90,6 +90,11 @@ Route::prefix('staff')->middleware(['auth', 'staff'])->group(function () {
         ->name('staff.reports.index');
     Route::get('tasks', [StaffTaskController::class, 'index'])
         ->name('staff.tasks.index');
+
+    Route::get('change-requests', [StaffInventoryChangeRequestController::class, 'index'])
+        ->name('staff.change-requests.index');
+    Route::post('change-requests/{inventory}', [StaffInventoryChangeRequestController::class, 'store'])
+        ->name('staff.change-requests.store');
 });
 
 Route::prefix('viewer')->middleware(['auth', 'viewer'])->group(function () {
