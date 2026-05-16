@@ -1,16 +1,44 @@
 import AdminLayout from '@/Layouts/Admin/AdminLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 
-export default function AdminDashboard({ auth, stats = {}, recent_activity = [] }) {
+export default function AdminDashboard({ auth, stats = {}, recent_activity = [], alerts = {}, stock_chart = [], pending_change_requests = [] }) {
     const {
         total_inventory = 0,
         low_stock       = 0,
         total_value     = 0,
         active_users    = 0,
+        pending_change_requests: pendingCount = 0,
     } = stats;
+
+    const [selectedRequest, setSelectedRequest] = useState(null);
+
+    const { data, setData, patch, processing, reset } = useForm({
+        review_note: '',
+    });
 
     const formatCurrency = (val) =>
         new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val ?? 0);
+
+    const approve = () => {
+        patch(route('admin.change-requests.approve', selectedRequest.id), {
+            preserveState: false,
+            onSuccess: () => {
+                setSelectedRequest(null);
+                reset();
+            },
+        });
+    };
+
+    const reject = () => {
+        patch(route('admin.change-requests.reject', selectedRequest.id), {
+            preserveState: false,
+            onSuccess: () => {
+                setSelectedRequest(null);
+                reset();
+            },
+        });
+    };
 
     return (
         <>
@@ -21,7 +49,6 @@ export default function AdminDashboard({ auth, stats = {}, recent_activity = [] 
 
                     {/* Stats Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-
                         <div className="bg-white rounded-lg shadow p-6">
                             <div className="flex items-center justify-between mb-4">
                                 <span className="text-sm font-medium text-gray-500">Total Inventory</span>
@@ -131,6 +158,58 @@ export default function AdminDashboard({ auth, stats = {}, recent_activity = [] 
                         </Link>
                     </div>
 
+                    {/* Pending Change Requests */}
+                    {pending_change_requests.length > 0 && (
+                        <div className="bg-white rounded-lg shadow overflow-hidden">
+                            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <h3 className="text-base font-semibold text-gray-900">Pending Change Requests</h3>
+                                    <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                                        {pendingCount}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="divide-y divide-gray-100">
+                                {pending_change_requests.map((req) => (
+                                    <div key={req.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
+                                                <span className="text-xs font-bold text-yellow-700">
+                                                    {(req.requester?.name ?? 'S')[0].toUpperCase()}
+                                                </span>
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-medium text-gray-900 truncate">
+                                                    {req.requester?.name ?? 'Staff'}
+                                                </p>
+                                                <p className="text-xs text-gray-500 truncate">
+                                                    Requested changes to <span className="font-medium">{req.inventory?.name ?? '—'}</span>
+                                                    {req.inventory?.sku ? ` · ${req.inventory.sku}` : ''}
+                                                </p>
+                                                <p className="text-xs text-gray-400 truncate mt-0.5">{req.reason}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3 ml-4 flex-shrink-0">
+                                            <span className="text-xs text-gray-400 whitespace-nowrap">
+                                                {new Date(req.created_at).toLocaleDateString('en-US', {
+                                                    month: 'short', day: 'numeric',
+                                                    hour: '2-digit', minute: '2-digit',
+                                                })}
+                                            </span>
+                                            <button
+                                                onClick={() => setSelectedRequest(req)}
+                                                className="text-xs font-medium text-indigo-600 hover:text-indigo-900 whitespace-nowrap"
+                                            >
+                                                Review →
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Recent Activity */}
                     <div className="bg-white rounded-lg shadow overflow-hidden">
                         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -184,6 +263,111 @@ export default function AdminDashboard({ auth, stats = {}, recent_activity = [] 
 
                 </div>
             </AdminLayout>
+
+            {/* Review Modal */}
+            {selectedRequest && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/50" onClick={() => { setSelectedRequest(null); reset(); }} />
+
+                    <div className="relative bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+                        {/* Modal Header */}
+                        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                            <h3 className="text-base font-semibold text-gray-900">Review Change Request</h3>
+                            <button onClick={() => { setSelectedRequest(null); reset(); }} className="text-gray-400 hover:text-gray-600">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="px-6 py-4 space-y-4">
+                            {/* Request Info */}
+                            <div className="bg-gray-50 rounded-md p-4 space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-500">Requested by</span>
+                                    <span className="font-medium text-gray-900">{selectedRequest.requester?.name ?? '—'}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-500">Item</span>
+                                    <span className="font-medium text-gray-900">{selectedRequest.inventory?.name ?? '—'}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-500">SKU</span>
+                                    <span className="font-medium text-gray-900">{selectedRequest.inventory?.sku ?? '—'}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-500">Submitted</span>
+                                    <span className="font-medium text-gray-900">
+                                        {new Date(selectedRequest.created_at).toLocaleDateString('en-US', {
+                                            month: 'short', day: 'numeric', year: 'numeric',
+                                            hour: '2-digit', minute: '2-digit',
+                                        })}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Reason */}
+                            <div>
+                                <p className="text-xs font-medium text-gray-500 mb-1">Reason</p>
+                                <p className="text-sm text-gray-900 bg-gray-50 rounded-md p-3">{selectedRequest.reason}</p>
+                            </div>
+
+                            {/* Requested Changes */}
+                            <div>
+                                <p className="text-xs font-medium text-gray-500 mb-2">Requested Changes</p>
+                                <div className="bg-gray-50 rounded-md p-3 space-y-1">
+                                    {Object.entries(selectedRequest.changes).map(([key, value]) =>
+                                        value !== '' && value !== null ? (
+                                            <div key={key} className="flex justify-between text-sm">
+                                                <span className="text-gray-500 capitalize">{key.replace(/_/g, ' ')}</span>
+                                                <span className="font-medium text-gray-900">{value}</span>
+                                            </div>
+                                        ) : null
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Review Note */}
+                            <div>
+                                <label className="block text-xs font-medium text-gray-500 mb-1">
+                                    Review Note <span className="text-gray-400">(required for rejection)</span>
+                                </label>
+                                <textarea
+                                    value={data.review_note}
+                                    onChange={(e) => setData('review_note', e.target.value)}
+                                    rows={3}
+                                    placeholder="Add a note for the staff member..."
+                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+                            <button
+                                onClick={() => { setSelectedRequest(null); reset(); }}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={reject}
+                                disabled={processing}
+                                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
+                            >
+                                {processing ? 'Processing...' : 'Reject'}
+                            </button>
+                            <button
+                                onClick={approve}
+                                disabled={processing}
+                                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50"
+                            >
+                                {processing ? 'Processing...' : 'Approve'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

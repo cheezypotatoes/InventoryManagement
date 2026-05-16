@@ -76,6 +76,15 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
         ->name('admin.security.index');
     Route::patch('security/settings', [App\Http\Controllers\Admin\SecurityController::class, 'update'])
         ->name('admin.security.settings.update');
+
+
+
+    Route::get('change-requests', [App\Http\Controllers\Admin\InventoryChangeRequestController::class, 'index'])
+        ->name('admin.change-requests.index');
+    Route::patch('change-requests/{changeRequest}/approve', [App\Http\Controllers\Admin\InventoryChangeRequestController::class, 'approve'])
+        ->name('admin.change-requests.approve');
+    Route::patch('change-requests/{changeRequest}/reject', [App\Http\Controllers\Admin\InventoryChangeRequestController::class, 'reject'])
+        ->name('admin.change-requests.reject');
 });
 
 Route::prefix('staff')->middleware(['auth', 'staff'])->group(function () {
